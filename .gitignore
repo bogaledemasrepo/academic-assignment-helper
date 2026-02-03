@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Database & Storage
+postgres_data/
+*.db
+*.sqlite3
+
+# Project Specific (Assignment uploads)
+backend/uploads/
+data/*.json
+!data/sample_academic_sources.json
+
+# n8n
+.n8n/
+
+# OS generated files
+.DS_Store
+Thumbs.db
