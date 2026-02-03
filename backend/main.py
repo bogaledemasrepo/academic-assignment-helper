@@ -1,16 +1,17 @@
-from fastapi import FastAPI
+import models
+from database import engine
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+import models, auth, database # Assuming you have a database.py for session management
+
+# Create tables if they don't exist
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Academic Assignment Helper")
 
 @app.get("/")
 async def root():
-    return {"message": "hallo fast API"}
-
-from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-import models, auth, database # Assuming you have a database.py for session management
-
-app = FastAPI()
+    return {"message": "Healthy fast API"}
 
 @app.post("/auth/register")
 def register(student_data: dict, db: Session = Depends(database.get_db)):
