@@ -1,11 +1,15 @@
 import models
-from database import engine
+from database import engine, init_db
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import models, auth, database # Assuming you have a database.py for session management
 
-# Create tables if they don't exist
+init_db()
+
 models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
 
 app = FastAPI(title="Academic Assignment Helper")
 
