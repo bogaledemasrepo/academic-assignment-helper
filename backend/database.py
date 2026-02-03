@@ -9,7 +9,7 @@ load_dotenv()
 # Use Environment Variable with a fallback for local safety
 SQLALCHEMY_DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "postgresql://mrbg:mrbg@db:5432/academic_helper"
+    "postgresql://new_admin:new_password_123@db:5432/assignment_db"
 )
 
 # Create the engine
