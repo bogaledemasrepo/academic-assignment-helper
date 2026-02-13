@@ -8,3 +8,8 @@ python-multipart
 requests
 pgvector
 python-dotenv
+PyMuPDF
+python-docx
+httpx
+email-validator
+google-generativeai

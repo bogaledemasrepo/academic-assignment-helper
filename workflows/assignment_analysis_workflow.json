@@ -1,0 +1,594 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "assignment-upload",
+        "options": {}
+      },
+      "id": "11e05130-155b-4694-8251-919d26cff50e",
+      "name": "Receive Assignment Upload",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        608
+      ],
+      "webhookId": "c0f3a3ed-8e46-4860-a9a4-454d82baee59"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "fileName",
+              "value": "={{ $json.body.fileName }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "fileType",
+              "value": "={{ $json.body.fileType }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "studentEmail",
+              "value": "={{ $json.body.studentEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "studentName",
+              "value": "={{ $json.body.studentName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "9255f797-cbb5-4a90-8f78-0a03bd8c0c0d",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fileType }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fileType }}",
+                    "rightValue": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Word"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "30b67646-1daf-43f4-91e3-ff48623596cc",
+      "name": "Route by File Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1056,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "f5b56eaf-48bc-4ed4-b6aa-d2a8bddca4e4",
+      "name": "Extract from PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1296,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "id": "309df5b5-0a15-49d0-a9d1-7479f012aa50",
+      "name": "Extract from Word",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1296,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "extractedText",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "fileName",
+              "value": "={{ $json.fileName }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "studentEmail",
+              "value": "={{ $json.studentEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "studentName",
+              "value": "={{ $json.studentName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "231dfca1-312f-43df-893f-62357b4868ca",
+      "name": "Merge Extracted Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1632,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search through academic papers and research documents to check for plagiarism and find similar content",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "id",
+          "value": "academic_papers"
+        }
+      },
+      "id": "120e7e31-4d3a-4682-b9e0-e69b3183f9bd",
+      "name": "Vector Store - Academic Papers",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        1856,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following assignment text:\n\n{{ $json.extractedText }}\n\nProvide a comprehensive analysis including plagiarism score, grammar score, argument score, overall grade, detailed feedback, and any flagged sections.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an academic assignment analyzer. Your role is to analyze submitted assignments for: 1) Plagiarism detection by comparing against academic papers using the vector store tool, 2) Grammar and writing quality, 3) Argument strength and coherence, 4) Citation accuracy. Provide detailed analysis with numerical scores and constructive recommendations."
+        }
+      },
+      "id": "929712a0-6707-4235-9b19-a62acd712493",
+      "name": "AI Assignment Analyzer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1872,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"plagiarismScore\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"description\": \"Plagiarism score from 0-100\"\n\t\t},\n\t\t\"grammarScore\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"description\": \"Grammar quality score from 0-100\"\n\t\t},\n\t\t\"argumentScore\": {\n\t\t\t\"type\": \"number\",\n\t\t\t\"description\": \"Argument strength score from 0-100\"\n\t\t},\n\t\t\"overallGrade\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Overall letter grade\"\n\t\t},\n\t\t\"feedback\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Detailed feedback for the student\"\n\t\t},\n\t\t\"flaggedSections\": {\n\t\t\t\"type\": \"array\",\n\t\t\t\"items\": {\n\t\t\t\t\"type\": \"string\"\n\t\t\t},\n\t\t\t\"description\": \"Sections flagged for plagiarism\"\n\t\t}\n\t},\n\t\"required\": [\"plagiarismScore\", \"grammarScore\", \"argumentScore\", \"overallGrade\", \"feedback\"]\n}"
+      },
+      "id": "b61356bd-a76e-4fb7-a355-336cac23c546",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2144,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "student_name",
+              "value": "={{ $('Merge Extracted Text').item.json.studentName }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "student_email",
+              "value": "={{ $('Merge Extracted Text').item.json.studentEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "file_name",
+              "value": "={{ $('Merge Extracted Text').item.json.fileName }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "plagiarism_score",
+              "value": "={{ $json.output.plagiarismScore }}",
+              "type": "number"
+            },
+            {
+              "id": "id-5",
+              "name": "grammar_score",
+              "value": "={{ $json.output.grammarScore }}",
+              "type": "number"
+            },
+            {
+              "id": "id-6",
+              "name": "argument_score",
+              "value": "={{ $json.output.argumentScore }}",
+              "type": "number"
+            },
+            {
+              "id": "id-7",
+              "name": "overall_grade",
+              "value": "={{ $json.output.overallGrade }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "feedback",
+              "value": "={{ $json.output.feedback }}",
+              "type": "string"
+            },
+            {
+              "id": "id-9",
+              "name": "flagged_sections",
+              "value": "={{ JSON.stringify($json.output.flaggedSections) }}",
+              "type": "array"
+            },
+            {
+              "id": "id-10",
+              "name": "analyzed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b37b7675-7a53-4c15-ba3e-aaa9a157e1c8",
+      "name": "Prepare Database Insert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2352,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "name",
+          "value": "assignment_analysis"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "abfe5984-e654-4ec9-b975-4a34c02d0e3c",
+      "name": "Store Analysis Results",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2576,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "emailSubject",
+              "value": "=Assignment Analysis Results - {{ $json.overall_grade }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "emailBody",
+              "value": "=Dear {{ $json.student_name }},\n\nYour assignment has been analyzed. Here are your results:\n\nOverall Grade: {{ $json.overall_grade }}\n\nDetailed Scores:\n- Plagiarism Check: {{ $json.plagiarism_score }}/100\n- Grammar Quality: {{ $json.grammar_score }}/100\n- Argument Strength: {{ $json.argument_score }}/100\n\nFeedback:\n{{ $json.feedback }}\n\n{{ $json.flagged_sections && $json.flagged_sections.length > 0 ? 'Sections requiring attention:\n' + JSON.parse($json.flagged_sections).join('\n') : '' }}\n\nBest regards,\nAcademic Review System",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "be3c9ecf-429e-47ee-a5cf-588ca1592789",
+      "name": "Format Email Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2816,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "mrbgdm@gmail.com",
+        "toEmail": "={{ $json.student_email }}",
+        "subject": "={{ $json.emailSubject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.emailBody }}",
+        "options": {}
+      },
+      "id": "06c0dd64-f286-4adc-b3e1-127b40608e89",
+      "name": "Email Student Summary",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3008,
+        608
+      ],
+      "webhookId": "4fb77327-8a15-4927-a196-0e2d04ed0fed"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "e554da60-8630-44fe-9521-72d33bde7f5a",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "id": "05c1dbac-9823-428e-91c3-69fb2e482376",
+      "name": "Google Gemini Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        992
+      ]
+    }
+  ],
+  "connections": {
+    "Receive Assignment Upload": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Route by File Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by File Type": {
+      "main": [
+        [
+          {
+            "node": "Extract from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from Word",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from PDF": {
+      "main": [
+        [
+          {
+            "node": "Merge Extracted Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from Word": {
+      "main": [
+        [
+          {
+            "node": "Merge Extracted Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Extracted Text": {
+      "main": [
+        [
+          {
+            "node": "AI Assignment Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store - Academic Papers": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Assignment Analyzer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Assignment Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Prepare Database Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Assignment Analyzer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Database Insert": {
+      "main": [
+        [
+          {
+            "node": "Store Analysis Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Analysis Results": {
+      "main": [
+        [
+          {
+            "node": "Format Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Email Content": {
+      "main": [
+        [
+          {
+            "node": "Email Student Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Assignment Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store - Academic Papers",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6ce26c63596f0cc4323563c529acfca0cccb0e57f6533d79a60a42c9ff862ae7"
+  }
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Introduction to Machine Learning",
+    "authors": "John Smith",
+    "publication_year": 2023,
+    "abstract": "A comprehensive guide to supervised and unsupervised learning algorithms.",
+    "full_text": "Machine learning is a subset of artificial intelligence that involves training algorithms to make predictions or decisions based on data. Supervised learning uses labeled datasets, while unsupervised learning finds hidden patterns in unlabeled data.",
+    "source_type": "textbook"
+  },
+  {
+    "title": "Academic Integrity and Plagiarism",
+    "authors": "Dr. Emily Chen",
+    "publication_year": 2024,
+    "abstract": "Exploring the importance of original work and the impact of AI in academia.",
+    "full_text": "Plagiarism is the act of using someone else's work or ideas without proper credit. In the age of AI, academic integrity remains crucial, requiring students to clearly distinguish their original contributions from AI-generated content.",
+    "source_type": "paper"
+  }
+]
